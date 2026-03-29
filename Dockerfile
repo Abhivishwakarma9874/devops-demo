@@ -1,36 +1,28 @@
+
 FROM php:8.3-fpm
 
-WORKDIR /var/www
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git curl zip unzip libpng-dev libonig-dev libxml2-dev
 
-# Install dependencies
-# RUN apt-get update && apt-get install -y \
-#     git curl zip unzip libpng-dev libonig-dev libxml2-dev nginx supervisor \
-#     && docker-php-ext-install pdo pdo_mysql pdo_sqlite mbstring exif pcntl bcmath gd
+# Install PHP extensions
+RUN docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-       git curl zip unzip libpng-dev libonig-dev libxml2-dev nginx supervisor \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-    
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /var/www
 
 # Copy project files
 COPY . .
 
-# Install Laravel dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Install dependencies
+RUN composer install
 
-# Fix permissions
-RUN chown -R www-data:www-data storage bootstrap/cache database
-RUN chmod -R 777 storage bootstrap/cache database
+# Set permissions
+RUN chown -R www-data:www-data /var/www
 
-# Copy Nginx config
-COPY ./nginx/default.conf /etc/nginx/sites-available/default
+EXPOSE 8000
 
-# Expose Railway port
-EXPOSE $PORT
-
-# Start Nginx + PHP-FPM
-CMD service nginx start && php-fpm
+CMD php artisan serve --host=0.0.0.0 --port=8000
