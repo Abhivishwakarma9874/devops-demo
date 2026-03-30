@@ -120,7 +120,7 @@ These are stored securely in GitHub Secrets.
 ### 3. Connect to Server
 
 ```
-ssh -i key.pem ubuntu@<ec2-public-ip>
+ssh -i "devops-demo.pem" ubuntu@ec2-35-154-194-132.ap-south-1.compute.amazonaws.com
 ```
 
 ### 4. Install Docker
@@ -155,7 +155,7 @@ abhivishwakarma9874/laravel-app
 ## 🌐 Live Application
 
 ```
-http://<your-ec2-public-ip>
+http://35.154.194.132/
 ```
 
 ---
