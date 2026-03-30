@@ -1,58 +1,235 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🚀 DevOps Assignment - Laravel Application Deployment
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## 📌 Project Overview
 
-## About Laravel
+This project demonstrates deploying a Laravel application using Docker, implementing CI/CD automation, and hosting the application on AWS EC2.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+# 🏗️ 1. Architecture Overview
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```
+[User Browser]
+      ↓
+[EC2 Instance (Docker Container)]
+      ↓
+[Laravel Application]
+      ↓
+[SQLite Database]
+      ↓
+[Storage & Logs]
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+# 💻 2. Local Development Setup
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Clone Repository
 
-## Code of Conduct
+```
+git clone https://github.com/yourusername/devops-demo
+cd devops-demo
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Setup Environment
 
-## Security Vulnerabilities
+```
+cp .env.example .env
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Start Application using Docker
 
-## License
+```
+docker-compose up
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Run Laravel Commands
+
+```
+docker-compose exec app php artisan key:generate
+docker-compose exec app php artisan migrate
+```
+
+## Access Application
+
+```
+http://localhost:8000
+```
+
+---
+
+# ⚙️ 3. CI/CD Pipeline Explanation
+
+## Tool Used
+
+* GitHub Actions
+
+## Trigger
+
+* Pipeline runs automatically on push to `main` branch
+
+## Pipeline Steps
+
+1. Checkout source code
+2. Set up Docker build environment
+3. Build Docker image
+4. Push Docker image to Docker Hub
+
+## Docker Image
+
+```
+abhivishwakarma9874/laravel-app
+```
+
+## Secrets Management
+
+* DOCKER_USERNAME
+* DOCKER_PASSWORD
+
+These are stored securely in GitHub Secrets.
+
+---
+
+# ☁️ 4. Production Deployment (AWS EC2)
+
+## Platform Chosen
+
+* AWS EC2 (Free Tier)
+
+## Reason
+
+* Full control over server
+* Real-world deployment experience
+* Widely used in industry
+
+---
+
+## Steps Performed
+
+### 1. Launch EC2 Instance
+
+* Ubuntu 22.04
+* Instance type: t2.micro
+
+### 2. Configure Security Group
+
+* Port 22 (SSH)
+* Port 80 (HTTP)
+* Port 8000 (App access)
+
+### 3. Connect to Server
+
+```
+ssh -i key.pem ubuntu@<ec2-public-ip>
+```
+
+### 4. Install Docker
+
+```
+sudo apt update
+sudo apt install docker.io -y
+sudo systemctl start docker
+```
+
+### 5. Pull Docker Image
+
+```
+docker pull abhivishwakarma9874/laravel-app:latest
+```
+
+### 6. Run Container
+
+```
+docker run -d -p 80:8000 \
+-e APP_ENV=production \
+-e APP_KEY=base64:your_key \
+-e DB_CONNECTION=sqlite \
+-e DB_DATABASE=/var/www/database/database.sqlite \
+-e SESSION_DRIVER=file \
+-e CACHE_STORE=file \
+abhivishwakarma9874/laravel-app
+```
+
+---
+
+## 🌐 Live Application
+
+```
+http://<your-ec2-public-ip>
+```
+
+---
+
+# 🧩 5. Challenges & Solutions
+
+## Issue 1: Docker Build Failure
+
+* Cause: Missing PHP extensions
+* Solution: Installed required dependencies in Dockerfile
+
+## Issue 2: Laravel Not Working (Blank Page)
+
+* Cause: Wrong session/cache driver using database
+* Solution: Switched to file-based drivers
+
+## Issue 3: SQLite Database Not Found
+
+* Cause: Database file missing
+* Solution: Created SQLite file and ran migrations
+
+## Issue 4: AWS vCPU Limit Error
+
+* Cause: Free tier CPU restriction
+* Solution: Switched region and used t2.micro instance
+
+## Issue 5: 502 / Application Not Responding
+
+* Cause: Incorrect port binding
+* Solution: Configured application to run on correct port
+
+---
+
+# 🔐 6. Security & Improvements
+
+## Current State
+
+* Application runs over HTTP
+
+## Future Improvements
+
+* Enable HTTPS using Let's Encrypt
+* Use Nginx reverse proxy
+* Add monitoring (UptimeRobot)
+* Implement auto-deploy to EC2
+
+---
+
+# 📦 7. Environment Variables
+
+Key variables used:
+
+```
+APP_ENV=production
+APP_KEY=base64:...
+DB_CONNECTION=sqlite
+SESSION_DRIVER=file
+CACHE_STORE=file
+QUEUE_CONNECTION=sync
+```
+
+---
+
+# 🎯 Conclusion
+
+This project successfully demonstrates:
+
+* Containerization using Docker
+* CI/CD automation with GitHub Actions
+* Deployment on AWS EC2
+* Debugging and problem-solving in real scenarios
+
+---
+
+# 🚀 Author
+
+Abhishek Vishwakarma
